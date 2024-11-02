@@ -1,12 +1,12 @@
-name: Build Docker image and Push to ACR New
+name: Docker -ACR - K8S
 
 on:
 #   push:
 #     branches:
-#       - main
+#       - master
 #   pull_request:
 #     branches:
-#       - main
+#       - master
   workflow_dispatch:
 
 jobs:
