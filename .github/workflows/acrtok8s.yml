@@ -1,18 +1,37 @@
-name: Docker Image CI
+name: Build Docker image and Push to ACR New
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+  workflow_dispatch:
 
 jobs:
-
-  build:
-
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{secrets.AZURE_CLIENT_ID}}
+          tenant-id: ${{secrets.AZURE_TENANT_ID}}
+          client-secret: ${{secrets.AZURE_CLIENT_SECRET}}
+
+      - name: Set Azure Subscription
+        run: az account set --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}}
+
+      - name: Log in to Azure Container Registry
+        run: az acr login --name ${{secrets.AZURE_REGISTRY_NAME}}
+
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE_NAME=${{secrets.AZURE_REGISTRY_NAME}}.azurecr.io/myapp:${{github.sha}}
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
